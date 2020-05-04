@@ -53,7 +53,7 @@ public class Perceptron implements IPerceptron {
     @Override
     public double[] calculateOutput(double[] input) {
         double[] layerInput = new double[layers.get(0).nInput];
-        System.arraycopy(input, 0, layerInput, 0, input.length);
+        System.arraycopy(input, 0, layerInput, 0, layerInput.length);
         for (Layer layer: layers) {
             layer.feedForward(layerInput, activationFunction);
             layerInput = layer.getOutput();
