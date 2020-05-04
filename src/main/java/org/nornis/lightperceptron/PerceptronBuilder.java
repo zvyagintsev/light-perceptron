@@ -68,6 +68,7 @@ public class PerceptronBuilder {
                 JsonObject neuronElement = neuronsArray.get(i).getAsJsonObject();
                 double threshold = neuronElement.getAsJsonObject().
                         get(Constants.THRESHOLD).getAsDouble();
+                thresholds[i] = threshold;
                 JsonArray weightsArray = neuronElement.getAsJsonObject().
                         get(Constants.WEIGHTS_ARRAY).getAsJsonArray();
                 double[] neuronWeights = new double[weightsArray.size()];
@@ -78,33 +79,6 @@ public class PerceptronBuilder {
             }
             Layer layer = new Layer(weights, thresholds);
             layers.add(layer);
-            /*
-            // loading thresholds
-            Optional.ofNullable(jsonElement).map(JsonElement::getAsJsonArray).map(jsonElements -> {
-                double[] result = new double[jsonElements.size()];
-                for (int i = 0; i < jsonElements.size(); i++)
-                    result[i] = jsonElements.get(i).getAsDouble();
-                return result;
-            });
-
-            double[] thresholdsArr = Optional.ofNullable(jsonElement).
-                    map(JsonElement::getAsJsonArray).map(jsonElements -> {
-                double[] thresholds = new double[jsonElements.size()];
-                for (int i = 0; i < jsonElements.size(); i++) {
-                    thresholds[i] = jsonElements.get(i).getAsDouble();
-                }
-                return thresholds;
-            }).get();
-
-            // loading weights
-            double[][] weightsArr = Optional.ofNullable(jsonElement).
-                    map(JsonElement::getAsJsonArray).flatMap(jsonElements -> {
-                double[] thresholds = new double[jsonElements.size()];
-                for (int i = 0; i < jsonElements.size(); i++)
-                    thresholds[i] = jsonElements.get(i).getAsDouble();
-
-                return thresholds;
-            });*/
         });
         return new Perceptron(layers,
                 ActivationFunctionType.getFunction(activationFunctionType));
