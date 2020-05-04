@@ -88,12 +88,12 @@ public class Layer {
     }
 
 
-    public void updateWeight(double[] input, double[] error) {
+    public void updateWeight(double[] input, double[] error, double learningRate) {
         for (int i = 0; i < nOutput; i++) {
             for (int j = 0; j < nInput; j++) {
-                weights[i][j] += LEARN_RATE * error[i] * input[j];
+                weights[i][j] += learningRate * error[i] * input[j];
             }
-            thresholds[i] += LEARN_RATE * error[i];
+            thresholds[i] += learningRate * error[i];
         }
     }
 

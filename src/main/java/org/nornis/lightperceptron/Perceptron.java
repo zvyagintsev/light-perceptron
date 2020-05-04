@@ -4,15 +4,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.nornis.lightperceptron.activators.ActivationFunctionType;
 import org.nornis.lightperceptron.activators.IActivationFunction;
+import org.nornis.lightperceptron.schedule.LearningSchedule;
+import org.nornis.lightperceptron.schedule.ScheduleConstRate;
 import org.nornis.lightperceptron.utils.Constants;
-import org.nornis.lightperceptron.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.List;
 
-public class Perceptron implements INeuralNetwork {
+public class Perceptron implements IPerceptron {
 
     private final static Logger logger = LoggerFactory.getLogger(Perceptron.class);
 
@@ -32,125 +32,33 @@ public class Perceptron implements INeuralNetwork {
         this.nOutput = layers.get(layers.size() - 1).getOutputCount();
     }
 
-    /**
-     *
-     * @param target
-     */
+    private final static double LEARNING_RATE = 0.2;
+    private final static int LEARNING_STEPS = 100;
+
+    private LearningSchedule schedule = null;
+
     @Override
-    public double training(double[] input, double[] target) {
-        double[] output = calculate(input);
-        // Calculating output error
-        Layer ol = layers.get(layers.size() - 1);
-        double[] forwardError = new double[nOutput];
-        for (int i = 0; i < nOutput; i++) {
-            // calculate layer error
-            forwardError[i] = (target[i] - output[i]) *
-                    activationFunction.derivative(ol.getOutput()[i]);
+    public void learning(double[][] data) {
+        learning(data, LEARNING_STEPS);
+    }
+
+    @Override
+    public void learning(double[][] data, int nSteps) {
+        if (schedule == null) schedule = new ScheduleConstRate(LEARNING_RATE);
+        for(int i = 0; i < nSteps; i++) {
+            learning(data[i], i);
         }
-
-        for (int i = layers.size() - 1; i >= 0; i--) {
-            Layer layer = layers.get(i);
-            // previous layer error
-            double[] layerInput = i == 0 ? input : layers.get(i - 1).getOutput();
-            double[] err = layer.calcLayerError(forwardError, layerInput, activationFunction);
-
-            layer.updateWeight(layerInput, forwardError);
-            forwardError = err;
-        }
-        return Utils.calcErrorSquare(forwardError);
     }
 
     @Override
-    public double training(double[][] input, double[][] target) {
-        return training(input, target, 1);
-    }
-
-    @Override
-    public double training(double[][] input, double[][] target, int nCycles) {
-        if (input.length != target.length)
-            throw new IllegalArgumentException("Input and target arrays have different numbers of rows.");
-        if (nCycles < 1)
-            throw new IllegalArgumentException("The number of training cycles can not be less than 0");
-
-        double squireError = 0;
-        for (int i = 0; i < nCycles; i++) {
-            for (int j = 0; j < input.length; j++)
-                squireError = training(input[j], target[j]);
-        }
-        return squireError;
-    }
-
-    /*@Override
-    public double training(double[][] input, double[][] target, double maxError) {
-        double squireError = 0;
-        double nCycles = 0;
-        do {
-            for (int j = 0; j < input.length; j++)
-                squireError = training(input[j], target[j]);
-            nCycles++;
-        } while (squireError > maxError ||
-                        nCycles < Constants.MAX_ITERATION_COUNT);
-        return squireError;
-    }*/
-
-    @Override
-    public double training(double[][] data, int nInput, int nOutput) {
-        double[][] input = new double[data.length][nInput];
-        double[][] output = new double[data.length][nOutput];
-        return training(input, output);
-    }
-
-    @Override
-    public double training(double[][] data, int nInput, int nOutput, int nCycles) {
-        double[][] input = new double[data.length][nInput];
-        double[][] output = new double[data.length][nOutput];
-        for(int i = 0; i < data.length; i++) {
-            System.arraycopy(data[i], 0, input[i], 0, nInput);
-            System.arraycopy(data[i], nInput, output[i], 0, nOutput);
-        }
-        return training(input, output, nCycles);
-    }
-
-    /*@Override
-    public double training(double[][] data, int nInput, int nOutput, double error) {
-        double[][] input = new double[data.length][nInput];
-        double[][] output = new double[data.length][nOutput];
-        return training(input, output, error);
-    }*/
-
-    /**
-     * Calculates neural net output
-     *
-     * @param input
-     * @return
-     */
-    @Override
-    public double[] calculate(double[] input) {
-        double[] layerInput = input;
+    public double[] calculateOutput(double[] input) {
+        double[] layerInput = new double[layers.get(0).nInput];
+        System.arraycopy(input, 0, layerInput, 0, input.length);
         for (Layer layer: layers) {
             layer.feedForward(layerInput, activationFunction);
             layerInput = layer.getOutput();
         }
         return layers.get(layers.size() - 1).getOutput();
-    }
-
-    @Override
-    public double[] classification(double[] input) {
-        double[] calc = calculate(input);
-        double[] result = new double[calc.length];
-
-        double maxItem = calc[0];
-        int index = 0;
-
-        for(int i = 1; i < calc.length; i++) {
-            if(calc[i] > maxItem) {
-                maxItem = calc[i];
-                index = i;
-            }
-        }
-        Arrays.fill(result, 0);
-        result[index] = 1;
-        return result;
     }
 
     @Override
@@ -180,5 +88,31 @@ public class Perceptron implements INeuralNetwork {
         }
         nnJson.add(Constants.LAYERS_ARRAY, layersArray);
         return nnJson.toString();
+    }
+
+    private void learning(double[] row, int iteration) {
+        double[] output = calculateOutput(row);
+        int nOutput = layers.get(layers.size() - 1).nOutput;
+        // Calculating output error
+        Layer ol = layers.get(layers.size() - 1);
+        double[] forwardError = new double[nOutput];
+        for (int i = 0; i < nOutput; i++) {
+            // calculate layer error
+            forwardError[i] = (row[nOutput + i] - output[i]) *
+                    activationFunction.derivative(ol.getOutput()[i]);
+        }
+
+        for (int i = layers.size() - 1; i >= 0; i--) {
+            Layer layer = layers.get(i);
+            // previous layer error
+            double[] layerInput = i == 0 ? row : layers.get(i - 1).getOutput();
+            double[] err = layer.calcLayerError(forwardError, layerInput, activationFunction);
+            layer.updateWeight(layerInput, forwardError,schedule.getRate(iteration));
+            forwardError = err;
+        };
+    }
+
+    public void setSchedule(LearningSchedule schedule) {
+        this.schedule = schedule;
     }
 }
