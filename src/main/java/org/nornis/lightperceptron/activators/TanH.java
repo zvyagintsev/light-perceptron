@@ -1,6 +1,6 @@
 package org.nornis.lightperceptron.activators;
 
-public class Tanh implements IActivationFunction {
+public class TanH implements IActivationFunction {
 
     @Override
     public double calculate(double net) {

@@ -1,13 +1,15 @@
 package org.nornis.lightperceptron.activators;
 
 public enum ActivationFunctionType {
-    SIGMOID, TANH;
+    SIGMOID, TAN_H, SIN_H;
 
     public static IActivationFunction getFunction(ActivationFunctionType type) {
         if(type == SIGMOID)
             return new Sigmoid();
-        if (type == TANH)
-            return new Tanh();
-        throw new IllegalArgumentException("Unknown function");
+        else if (type == TAN_H)
+            return new TanH();
+        else if (type == SIN_H)
+            return new SinH();
+        else throw new IllegalArgumentException("Unknown activation function");
     }
 }
