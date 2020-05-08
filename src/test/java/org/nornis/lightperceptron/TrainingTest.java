@@ -9,12 +9,13 @@ public class TrainingTest {
     @Test
     public void approximation() {
         int maxIteration = 1000;
-        PerceptronBuilder pb = new PerceptronBuilder();
-        Perceptron p = pb.
-                addLayer(2, 2).
-                addLayer(2, 1).
-                build();
+        //PerceptronBuilder pb = new PerceptronBuilder();
+        //Perceptron p = pb.
+        //        addLayer(2, 2).
+        //        addLayer(2, 1).
+        //        build();
 
+        Perceptron p = PerceptronBuilder.createPerceptron(2).addLayer(2).addLayer(1).build();
         Random r = new Random();
         double a, b;
 
