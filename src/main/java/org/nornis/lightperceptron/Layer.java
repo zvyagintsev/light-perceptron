@@ -17,10 +17,15 @@ public class Layer {
 
 
     // number of input parameters
-    Integer nInput;
+    final Integer nInput;
     // number of output parameters
-    Integer nOutput;
+    final Integer nOutput;
 
+    public IActivationFunction getActivator() {
+        return activator;
+    }
+
+    private final IActivationFunction activator;
     /**
      * The default constructor.
      * Weights and thresholds are generated randomly.
@@ -28,7 +33,7 @@ public class Layer {
      * @param nInput  number of input parameters
      * @param nOutput number of output parameters
      */
-    public Layer(int nInput, int nOutput) {
+    public Layer(int nInput, int nOutput, IActivationFunction activationFunction) {
         //
         this.nInput = nInput;
         this.nOutput = nOutput;
@@ -36,10 +41,11 @@ public class Layer {
         thresholds = new double[nOutput];
         output = new double[nOutput];
         error = new double[nInput];
+        activator = activationFunction;
         initWeights();
     }
 
-    public Layer(double[][] weights, double[]thresholds) {
+    public Layer(double[][] weights, double[] thresholds, IActivationFunction activationFunction) {
         //
         this.nOutput = thresholds.length;
         this.nInput  = weights[0].length;
@@ -47,10 +53,11 @@ public class Layer {
         this.thresholds = thresholds;
         output = new double[nOutput];
         error  = new double[nInput];
+        activator = activationFunction;
     }
 
 
-    public static final Double LEARN_RATE = 0.2;
+    public static final Double LEARN_RATE = 0.5;
     
     protected double[] output;
     protected double[] error;
@@ -72,14 +79,14 @@ public class Layer {
         return weights;
     }
 
-    public void feedForward(double[] input, IActivationFunction aFunction) {
+    public void feedForward(double[] input) {
 
         for (int i = 0; i < nOutput; i++) {
             double sum = 0;
             for (int j = 0; j < nInput; j++)
                 sum += weights[i][j] * input[j];
             sum += thresholds[i];
-            output[i] = aFunction.calculate(sum);
+            output[i] = activator.calculate(sum);
         }
     }
 
@@ -99,13 +106,12 @@ public class Layer {
 
     public double[] calcLayerError(
             final double[] forwardError,
-            double[] input,
-            IActivationFunction aFunction) {
+            double[] input) {
         for (int i = 0; i < nInput; i++) {
             error[i] = 0;
             for (int j = 0; j < nOutput; j++)
                 error[i] += forwardError[j] * weights[j][i];
-            error[i] *= aFunction.derivative(input[i]);
+            error[i] *= activator.derivative(input[i]);
         }
         return error;
     }

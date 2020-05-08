@@ -1,12 +1,11 @@
 package org.nornis.lightperceptron;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.nornis.lightperceptron.activators.ActivationFunctionType;
-import org.nornis.lightperceptron.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class PerceptronBuilder {
 
@@ -14,6 +13,8 @@ public class PerceptronBuilder {
 
     private int inputCount = 1;
     private int outputCount = 1;
+/*
+    private LearningSchedule learningSchedule;
 
     // By default Sigmoid
     private ActivationFunctionType activationFunctionType = ActivationFunctionType.SIGMOID;
@@ -35,7 +36,16 @@ public class PerceptronBuilder {
         return this;
     }
 
+    public PerceptronBuilder setLearningSchedule(LearningSchedule schedule) {
+        this.learningSchedule = schedule;
+        return this;
+    }
+
     public PerceptronBuilder addLayer(int nInput, int nOutput) {
+        return addLayer(nInput, nOutput, activationFunctionType);
+    }
+
+    public PerceptronBuilder addLayer(int nInput, int nOutput, ActivationFunctionType afType) {
         Layer layer = new Layer(nInput, nOutput);
         this.outputCount = layer.getOutputCount();
         layers.add(layer);
@@ -48,7 +58,53 @@ public class PerceptronBuilder {
         layers.add(layer);
         return this;
     }
+*/
+    private static ActivationFunctionType DEFAULT_ACTIVATION_FUNCTION = ActivationFunctionType.SIGMOID;
 
+    private List<Integer> neuronsInLayerCount;
+    private List<ActivationFunctionType> activationFunctionTypeList;
+
+    private PerceptronBuilder(int nInput) {
+        this.inputCount = nInput;
+        neuronsInLayerCount = new ArrayList<>();
+        activationFunctionTypeList = new ArrayList<>();
+    }
+
+    public static PerceptronBuilder createPerceptron(int nInput) {
+        return new PerceptronBuilder(nInput);
+    }
+
+    public PerceptronBuilder addLayer(int nNeurons) {
+        outputCount = nNeurons;
+        neuronsInLayerCount.add(nNeurons);
+        activationFunctionTypeList.add(DEFAULT_ACTIVATION_FUNCTION);
+        return this;
+    }
+
+    public PerceptronBuilder addLayer(int nNeurons, ActivationFunctionType activationFunctionType) {
+        outputCount = nNeurons;
+        neuronsInLayerCount.add(nNeurons);
+        activationFunctionTypeList.add(activationFunctionType);
+        return this;
+    }
+
+    public Perceptron build() {
+        List<Layer> layers = new ArrayList<>(neuronsInLayerCount.size());
+        layers.add(new Layer(
+                inputCount, neuronsInLayerCount.get(0),
+                ActivationFunctionType.getFunction(activationFunctionTypeList.get(0)))
+        );
+        for(int i = 1; i < neuronsInLayerCount.size(); i++) {
+            Layer layer = new Layer(
+                    neuronsInLayerCount.get(i - 1),
+                    neuronsInLayerCount.get(i),
+                    ActivationFunctionType.getFunction(activationFunctionTypeList.get(i)));
+            layers.add(layer);
+        }
+        return new Perceptron(layers);
+    }
+
+    /*
     public Perceptron loadFromJson(String jsonStr) {
         JsonObject json = gson.fromJson(jsonStr, JsonObject.class);
         return loadFromJson(json);
@@ -82,5 +138,5 @@ public class PerceptronBuilder {
         });
         return new Perceptron(layers,
                 ActivationFunctionType.getFunction(activationFunctionType));
-    }
+    }*/
 }

@@ -21,13 +21,13 @@ public class Perceptron implements IPerceptron {
     private int nInput;
     private int nOutput;
 
-    IActivationFunction activationFunction;
+    //IActivationFunction activationFunction;
 
     private ActivationFunctionType type;
 
-    public Perceptron(List<Layer> layers, IActivationFunction aFunction) {
+    public Perceptron(List<Layer> layers) {
         this.layers = layers;
-        this.activationFunction = aFunction;
+        //this.activationFunction = aFunction;
         this.nInput  = layers.get(0).getInputCount();
         this.nOutput = layers.get(layers.size() - 1).getOutputCount();
     }
@@ -55,7 +55,7 @@ public class Perceptron implements IPerceptron {
         double[] layerInput = new double[layers.get(0).nInput];
         System.arraycopy(input, 0, layerInput, 0, layerInput.length);
         for (Layer layer: layers) {
-            layer.feedForward(layerInput, activationFunction);
+            layer.feedForward(layerInput);
             layerInput = layer.getOutput();
         }
         return layers.get(layers.size() - 1).getOutput();
@@ -99,14 +99,14 @@ public class Perceptron implements IPerceptron {
         for (int i = 0; i < nOutput; i++) {
             // calculate layer error
             forwardError[i] = (row[nOutput + i] - output[i]) *
-                    activationFunction.derivative(ol.getOutput()[i]);
+                    ol.getActivator().derivative(ol.getOutput()[i]);
         }
 
         for (int i = layers.size() - 1; i >= 0; i--) {
             Layer layer = layers.get(i);
             // previous layer error
             double[] layerInput = i == 0 ? row : layers.get(i - 1).getOutput();
-            double[] err = layer.calcLayerError(forwardError, layerInput, activationFunction);
+            double[] err = layer.calcLayerError(forwardError, layerInput);
             layer.updateWeight(layerInput, forwardError,schedule.getRate(iteration));
             forwardError = err;
         };
