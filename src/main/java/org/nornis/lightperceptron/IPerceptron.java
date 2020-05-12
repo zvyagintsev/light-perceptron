@@ -1,9 +1,14 @@
 package org.nornis.lightperceptron;
 
+import org.nornis.lightperceptron.schedule.LearningSchedule;
+
 public interface IPerceptron {
 
     void learning(double[][] data);
     void learning(double[][] data, int nSteps);
+    void learning(double[][] data, int nSteps, LearningSchedule learningSchedule);
+    void learning(double[][] data, int nSteps, boolean withNoise);
+    void learning(double[][] data, int nSteps, LearningSchedule learningSchedule, boolean withNoise);
 
     double[] calculateOutput(double[] input);
 

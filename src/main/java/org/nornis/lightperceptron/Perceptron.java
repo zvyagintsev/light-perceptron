@@ -3,9 +3,7 @@ package org.nornis.lightperceptron;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.nornis.lightperceptron.activators.ActivationFunctionType;
-import org.nornis.lightperceptron.activators.IActivationFunction;
 import org.nornis.lightperceptron.schedule.LearningSchedule;
-import org.nornis.lightperceptron.schedule.ScheduleConstRate;
 import org.nornis.lightperceptron.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +30,7 @@ public class Perceptron implements IPerceptron {
         this.nOutput = layers.get(layers.size() - 1).getOutputCount();
     }
 
-    private final static double LEARNING_RATE = 0.2;
+    private final static double LEARNING_RATE = 0.5;
     private final static int LEARNING_STEPS = 100;
 
     private LearningSchedule schedule = null;
@@ -44,10 +42,34 @@ public class Perceptron implements IPerceptron {
 
     @Override
     public void learning(double[][] data, int nSteps) {
-        if (schedule == null) schedule = new ScheduleConstRate(LEARNING_RATE);
         for(int i = 0; i < nSteps; i++) {
-            learning(data[i], i);
+            for (int j = 0; j < data.length; j++) {
+                learning(data[j], LEARNING_RATE, false);
+            }
         }
+    }
+
+    @Override
+    public void learning(double[][] data, int nSteps, LearningSchedule learningSchedule) {
+        for(int i = 0; i < nSteps; i++) {
+            for (int j = 0; j < data.length; j++) {
+                learning(data[j], learningSchedule.getRate(i), false);
+            }
+        }
+    }
+
+    @Override
+    public void learning(double[][] data, int nSteps, boolean withNoise) {
+        for(int i = 0; i < nSteps; i++) {
+            for (int j = 0; j < data.length; j++) {
+                learning(data[j], LEARNING_RATE, false);
+            }
+        }
+    }
+
+    @Override
+    public void learning(double[][] data, int nSteps, LearningSchedule learningSchedule, boolean withNoise) {
+
     }
 
     @Override
@@ -90,7 +112,7 @@ public class Perceptron implements IPerceptron {
         return nnJson.toString();
     }
 
-    private void learning(double[] row, int iteration) {
+    private void learning(double[] row, double learningRate, boolean withNoise) {
         double[] output = calculateOutput(row);
         int nOutput = layers.get(layers.size() - 1).nOutput;
         // Calculating output error
@@ -107,7 +129,7 @@ public class Perceptron implements IPerceptron {
             // previous layer error
             double[] layerInput = i == 0 ? row : layers.get(i - 1).getOutput();
             double[] err = layer.calcLayerError(forwardError, layerInput);
-            layer.updateWeight(layerInput, forwardError,schedule.getRate(iteration));
+            layer.updateWeight(layerInput, forwardError, learningRate, withNoise);
             forwardError = err;
         };
     }

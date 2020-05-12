@@ -10,6 +10,6 @@ public class Schedule_1DivAi implements LearningSchedule {
 
     @Override
     public double getRate(int stepInd) {
-        return 1 / (A * stepInd);
+        return 1.0 / (A * (stepInd + 1));
     }
 }

@@ -21,6 +21,8 @@ public class Layer {
     // number of output parameters
     final Integer nOutput;
 
+    private Random random = new Random();
+
     public IActivationFunction getActivator() {
         return activator;
     }
@@ -42,6 +44,7 @@ public class Layer {
         output = new double[nOutput];
         error = new double[nInput];
         activator = activationFunction;
+
         initWeights();
     }
 
@@ -64,10 +67,13 @@ public class Layer {
 
 
     private void initWeights() {
-        Random random = new Random();
         for (int i = 0; i < nOutput; i++)
             for (int j = 0; j < nInput; j++)
                 weights[i][j] = random.nextDouble();
+
+        for (int i = 0; i < nOutput; i++) {
+            thresholds[i] = random.nextDouble();
+        }
     }
 
     public void setWeights(double[][] weights) {
@@ -95,10 +101,11 @@ public class Layer {
     }
 
 
-    public void updateWeight(double[] input, double[] error, double learningRate) {
+    public void updateWeight(double[] input, double[] error, double learningRate, boolean withNoise) {
         for (int i = 0; i < nOutput; i++) {
             for (int j = 0; j < nInput; j++) {
                 weights[i][j] += learningRate * error[i] * input[j];
+                if (withNoise) weights[i][j] += random.nextGaussian();
             }
             thresholds[i] += learningRate * error[i];
         }
